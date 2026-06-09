@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle with gradient -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#4a7c25"/>
+      <stop offset="100%" stop-color="#2d5016"/>
+    </radialGradient>
+    <radialGradient id="soil" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5a3a28"/>
+      <stop offset="100%" stop-color="#3d2b1f"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Soil strip at bottom -->
+  <rect x="0" y="380" width="512" height="132" rx="0" fill="url(#soil)" opacity="0.85"/>
+  <rect x="0" y="368" width="512" height="20" rx="4" fill="#5a3a28" opacity="0.6"/>
+
+  <!-- Sun -->
+  <circle cx="390" cy="110" r="44" fill="#f5c842" opacity="0.92"/>
+  <circle cx="390" cy="110" r="34" fill="#f5c842"/>
+  <!-- Sun rays -->
+  <g stroke="#f5c842" stroke-width="5" stroke-linecap="round" opacity="0.7">
+    <line x1="390" y1="52" x2="390" y2="40"/>
+    <line x1="390" y1="168" x2="390" y2="180"/>
+    <line x1="332" y1="110" x2="320" y2="110"/>
+    <line x1="448" y1="110" x2="460" y2="110"/>
+    <line x1="349" y1="69" x2="341" y2="61"/>
+    <line x1="431" y1="151" x2="439" y2="159"/>
+    <line x1="431" y1="69" x2="439" y2="61"/>
+    <line x1="349" y1="151" x2="341" y2="159"/>
+  </g>
+
+  <!-- Rice stalk — center -->
+  <line x1="256" y1="370" x2="256" y2="150" stroke="#c8e06b" stroke-width="9" stroke-linecap="round"/>
+  <!-- Rice grains on center stalk -->
+  <ellipse cx="256" cy="155" rx="14" ry="20" fill="#e8d84a" transform="rotate(-10 256 155)"/>
+  <ellipse cx="242" cy="178" rx="13" ry="19" fill="#ddd040" transform="rotate(8 242 178)"/>
+  <ellipse cx="268" cy="178" rx="13" ry="19" fill="#ddd040" transform="rotate(-8 268 178)"/>
+  <ellipse cx="234" cy="200" rx="12" ry="18" fill="#d4c838" transform="rotate(12 234 200)"/>
+  <ellipse cx="278" cy="200" rx="12" ry="18" fill="#d4c838" transform="rotate(-12 278 200)"/>
+  <ellipse cx="228" cy="222" rx="11" ry="17" fill="#c8be34" transform="rotate(15 228 222)"/>
+  <ellipse cx="284" cy="222" rx="11" ry="17" fill="#c8be34" transform="rotate(-15 284 222)"/>
+
+  <!-- Rice stalk — left -->
+  <line x1="185" y1="372" x2="195" y2="185" stroke="#aacf55" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="194" cy="190" rx="12" ry="18" fill="#ddd040" transform="rotate(-5 194 190)"/>
+  <ellipse cx="182" cy="210" rx="11" ry="17" fill="#d4c838" transform="rotate(10 182 210)"/>
+  <ellipse cx="204" cy="210" rx="11" ry="17" fill="#d4c838" transform="rotate(-10 204 210)"/>
+  <ellipse cx="174" cy="230" rx="10" ry="16" fill="#c8be34" transform="rotate(14 174 230)"/>
+  <ellipse cx="210" cy="230" rx="10" ry="16" fill="#c8be34" transform="rotate(-14 210 230)"/>
+
+  <!-- Rice stalk — right -->
+  <line x1="327" y1="372" x2="317" y2="185" stroke="#aacf55" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="318" cy="190" rx="12" ry="18" fill="#ddd040" transform="rotate(5 318 190)"/>
+  <ellipse cx="306" cy="210" rx="11" ry="17" fill="#d4c838" transform="rotate(10 306 210)"/>
+  <ellipse cx="328" cy="210" rx="11" ry="17" fill="#d4c838" transform="rotate(-10 328 210)"/>
+  <ellipse cx="300" cy="230" rx="10" ry="16" fill="#c8be34" transform="rotate(14 300 230)"/>
+  <ellipse cx="336" cy="230" rx="10" ry="16" fill="#c8be34" transform="rotate(-14 336 230)"/>
+
+  <!-- Leaves -->
+  <path d="M256 290 Q210 260 175 275" stroke="#7ab648" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M256 320 Q300 288 338 300" stroke="#7ab648" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+  <!-- Calendar mini-icon bottom right -->
+  <rect x="330" y="390" width="120" height="96" rx="12" fill="white" opacity="0.92"/>
+  <rect x="330" y="390" width="120" height="28" rx="12" fill="#2d5016"/>
+  <rect x="330" y="406" width="120" height="12" fill="#2d5016"/>
+  <!-- Calendar grid dots -->
+  <circle cx="358" cy="438" r="5" fill="#e8a020"/>
+  <circle cx="390" cy="438" r="5" fill="#7ab648"/>
+  <circle cx="422" cy="438" r="5" fill="#e55d3a"/>
+  <circle cx="358" cy="462" r="5" fill="#9b59b6"/>
+  <circle cx="390" cy="462" r="5" fill="#e8a020"/>
+  <circle cx="422" cy="462" r="5" fill="#7ab648"/>
+  <!-- Calendar header text placeholder lines -->
+  <rect x="348" y="400" width="34" height="6" rx="3" fill="white" opacity="0.8"/>
+  <rect x="390" y="400" width="20" height="6" rx="3" fill="white" opacity="0.5"/>
+</svg>

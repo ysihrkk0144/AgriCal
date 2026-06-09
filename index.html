@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2d5016">
+<meta name="description" content="愛知県の農作物年間栽培カレンダー">
+<title>愛知 農作業カレンダー</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --soil: #3d2b1f;
+  --leaf: #2d5016;
+  --leaf-light: #4a7c25;
+  --sprout: #7ab648;
+  --harvest: #e8a020;
+  --harvest-light: #f5c842;
+  --paper: #faf8f3;
+  --paper-dark: #f0ece2;
+  --text: #1a1208;
+  --text-mid: #5a4a35;
+  --text-light: #8a7a65;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--paper); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+/* HEADER */
+.app-header { background: var(--soil); color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+.header-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+.header-title { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 18px; font-weight: 900; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
+.header-title .icon { font-size: 22px; }
+.header-sub { font-size: 10px; opacity: 0.7; letter-spacing: 0.1em; }
+.view-tabs { display: flex; background: var(--leaf); border-bottom: 2px solid var(--leaf-light); }
+.tab-btn { flex: 1; padding: 10px 4px; border: none; background: transparent; color: rgba(255,255,255,0.6); font-size: 12px; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; }
+.tab-btn.active { color: white; background: rgba(255,255,255,0.15); font-weight: 700; border-bottom: 2px solid var(--harvest-light); margin-bottom: -2px; }
+
+
+.filter-bar { background: var(--paper-dark); padding: 10px 12px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1.5px solid rgba(0,0,0,0.15); background: white; color: var(--text-mid); font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: 'Noto Sans JP', sans-serif; }
+.filter-chip.active { background: var(--leaf); color: white; border-color: var(--leaf); }
+
+/* MAIN CONTENT */
+.main-content { padding: 12px; max-width: 900px; margin: 0 auto; }
+
+/* CARD VIEW — 1列 */
+.crops-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.crop-card { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1.5px solid rgba(0,0,0,0.05); display: flex; align-items: stretch; }
+.crop-card:hover, .crop-card:active { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.card-left-bar { width: 6px; flex-shrink: 0; }
+.card-body { padding: 12px 14px; flex: 1; display: flex; gap: 12px; align-items: flex-start; }
+.card-emoji-wrap { font-size: 32px; line-height: 1; flex-shrink: 0; padding-top: 2px; }
+.card-main { flex: 1; min-width: 0; }
+.card-name { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+.card-category { font-size: 10px; padding: 2px 6px; border-radius: 10px; display: inline-block; margin-bottom: 8px; font-weight: 500; }
+.cat-葉菜類 { background: #e8f5e9; color: #2e7d32; }
+.cat-根菜類 { background: #fff3e0; color: #e65100; }
+.cat-果菜類 { background: #fce4ec; color: #c62828; }
+.cat-豆類 { background: #e8eaf6; color: #283593; }
+.cat-穀物類 { background: #f3e5f5; color: #6a1b9a; }
+.cat-施設野菜 { background: #e0f7fa; color: #00695c; }
+.cat-施設果樹 { background: #fff8e1; color: #f57f17; }
+.cat-露地果樹 { background: #fce4ec; color: #880e4f; }
+.cat-施設花き { background: #f8bbd0; color: #c2185b; }
+.cat-露地野菜 { background: #e8f5e9; color: #1b5e20; }
+
+.card-stats { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; color: var(--text-light); }
+.card-stat { display: flex; align-items: center; gap: 3px; }
+.card-mini-bar { margin-top: 8px; display: flex; gap: 2px; }
+.mini-month { flex: 1; height: 4px; border-radius: 2px; background: #eee; }
+
+/* DETAIL MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+.modal-sheet { background: var(--paper); width: 100%; max-width: 800px; max-height: 90vh; border-radius: 20px 20px 0 0; overflow-y: auto; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+.modal-handle { width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 12px auto 0; }
+.modal-header { padding: 16px 20px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.modal-emoji { font-size: 40px; }
+.modal-title { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 22px; font-weight: 900; }
+.modal-close { margin-left: auto; background: #eee; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-mid); }
+.modal-body { padding: 16px 20px 32px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.info-box { background: white; border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(0,0,0,0.07); }
+.info-box-label { font-size: 10px; color: var(--text-light); margin-bottom: 3px; letter-spacing: 0.05em; }
+.info-box-value { font-size: 13px; font-weight: 700; color: var(--text); }
+.info-box-sub { font-size: 10px; color: var(--text-mid); margin-top: 2px; }
+
+/* CALENDAR TABLE IN MODAL */
+.calendar-section { margin-top: 4px; }
+.section-title { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--leaf); display: flex; align-items: center; gap: 6px; }
+.calendar-table { width: 100%; border-collapse: collapse; font-size: 11px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+.calendar-table th { background: var(--soil); color: white; padding: 6px 4px; text-align: center; font-weight: 500; }
+.calendar-table th.month-header { background: var(--leaf); font-size: 12px; font-weight: 700; }
+.calendar-table td { padding: 5px 3px; text-align: center; border: 1px solid rgba(0,0,0,0.06); vertical-align: middle; }
+.calendar-table tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+.work-label { font-size: 10px; font-weight: 700; text-align: left; padding: 5px 8px; white-space: nowrap; color: var(--text-mid); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 auto; }
+
+/* LEGEND */
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 8px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-mid); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* MONTH VIEW */
+.month-selector { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; margin-bottom: 12px; }
+.month-selector::-webkit-scrollbar { display: none; }
+.month-btn { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.12); background: white; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Noto Sans JP', sans-serif; color: var(--text-mid); }
+.month-btn.active { background: var(--leaf); color: white; border-color: var(--leaf); }
+.month-btn.current { border-color: var(--harvest); }
+
+/* MONTH WORK CARDS */
+.work-item-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.15s; margin-bottom: 10px; }
+.work-item-card:active { transform: scale(0.98); }
+.work-card-header { display: flex; align-items: center; gap: 8px; padding: 10px 12px 8px; }
+.work-dot-large { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.work-crop-name { font-weight: 700; font-size: 14px; flex: 1; }
+.work-category-badge { font-size: 10px; padding: 2px 6px; border-radius: 8px; font-weight: 500; }
+.work-periods-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid rgba(0,0,0,0.06); }
+.period-cell { padding: 6px 4px; text-align: center; border-right: 1px solid rgba(0,0,0,0.06); }
+.period-cell:last-child { border-right: none; }
+.period-label { font-size: 10px; color: var(--text-light); margin-bottom: 4px; display: block; }
+.period-work-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 8px; color: white; line-height: 1.2; }
+.period-empty { font-size: 11px; color: #ddd; line-height: 2; }
+
+/* SEASON HEADER */
+.season-header { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-light); margin: 14px 0 6px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
+.season-line { flex: 1; height: 1px; background: rgba(0,0,0,0.1); }
+
+/* VIEWS */
+.view { display: none; }
+.view.active { display: block; }
+
+/* TIMELINE — sticky headers */
+/* Single-table Excel freeze: one scroll container, sticky thead + sticky first col */
+.tl-scroll { overflow: auto; max-height: calc(100vh - 160px); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; }
+.tl-table { table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 11px; }
+.timeline-table { min-width: 800px; width: 100%; border-collapse: collapse; font-size: 11px; }
+
+/* Shared table cell styles */
+/* thead sticky: top freeze */
+.tl-table thead th { position: sticky; top: 0; z-index: 20; }
+.tl-table thead tr:nth-child(2) th { position: sticky; top: 26px; z-index: 18; left: auto; }
+/* first-col sticky: left freeze — always above any thead cell except corner */
+.tl-table .tl-crop-col { position: sticky; left: 0; z-index: 22; }
+/* corner cells (thead × first-col): highest of all — covers both row1 and row2 */
+.tl-table thead th.tl-crop-col { z-index: 40; background: var(--soil); }
+/* row2 corner: also needs high z-index to cover period labels */
+.tl-table thead tr:nth-child(2) th.tl-crop-col { z-index: 40; left: 0; background: #2a4a10; }
+
+.tl-th { background: var(--leaf); color: white; height: 26px; padding: 0 3px; text-align: center; white-space: nowrap; font-size: 11px; font-weight: 700; border-right: 2px solid rgba(255,255,255,0.4); border-bottom: 1px solid rgba(255,255,255,0.15); overflow: hidden; vertical-align: middle; box-sizing: border-box; }
+.tl-th.tl-period { height: 20px; font-size: 9px; font-weight: 400; background: #3a6b1e; border-right: 1px dotted rgba(255,255,255,0.3); padding: 0 1px; }
+.tl-th.tl-period-last { border-right: 2px solid rgba(255,255,255,0.4); }
+.tl-th.tl-crop-col { background: var(--soil); text-align: left; padding: 0 8px; }
+.tl-th.tl-crop-col.tl-period { background: #2a4a10; }
+
+.tl-td { height: 26px; padding: 0 2px; text-align: center; border-right: 1px dotted rgba(0,0,0,0.1); border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; box-sizing: border-box; }
+.tl-td.tl-month-end { border-right: 2px solid rgba(0,0,0,0.18); }
+.tl-td.tl-crop-col { background: var(--paper-dark); text-align: left; padding: 0 8px; font-weight: 700; font-size: 11px; border-right: 2px solid rgba(0,0,0,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 2px 0 3px rgba(0,0,0,0.08); }
+.tl-cat .tl-crop-col, .tl-cat td { background: var(--leaf) !important; color: white; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; }
+.tl-bar { height: 10px; border-radius: 5px; margin: 0 2px; display: block; }
+tbody tr:nth-child(even) .tl-td { background: rgba(0,0,0,0.02); }
+tbody tr:nth-child(even) .tl-td.tl-crop-col { background: #e8e4da; }
+
+
+
+.timeline-table td { padding: 3px 2px; text-align: center; vertical-align: middle; border-right: 1px dotted rgba(0,0,0,0.1); border-bottom: 1px solid rgba(0,0,0,0.05); }
+.timeline-table td.month-end { border-right: 2px solid rgba(0,0,0,0.18); }
+.timeline-table tbody tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+.timeline-table tbody tr:nth-child(even) td.crop-col { background: #e8e4da; }
+
+
+
+.timeline-table tr:hover td { background: rgba(122,182,72,0.07) !important; }
+.timeline-table tr:hover td.crop-col { background: #dde8cc !important; }
+.timeline-table tr.cat-divider:hover td { background: var(--leaf) !important; }
+
+.tl-bar { height: 10px; border-radius: 5px; margin: 0 2px; }
+
+/* BOTTOM NAV */
+.content-wrap { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid rgba(0,0,0,0.1); display: flex; padding-bottom: env(safe-area-inset-bottom); z-index: 99; box-shadow: 0 -2px 12px rgba(0,0,0,0.08); }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+/* ANIMATIONS */
+.crop-card { animation: cardIn 0.3s ease backwards; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-main">
+    <div>
+      <div class="header-title"><span class="icon">🌾</span><span>農作業カレンダー</span></div>
+      <div class="header-sub">愛知県 ・ 年間栽培スケジュール</div>
+    </div>
+  </div>
+  <div class="view-tabs">
+    <button class="tab-btn active" onclick="switchView('cards')">📋 品目一覧</button>
+    <button class="tab-btn" onclick="switchView('month')">📅 月別作業</button>
+    <button class="tab-btn" onclick="switchView('timeline')">📊 年間表</button>
+  </div>
+  <!-- unified filter bar: hidden on month view, wired dynamically -->
+  <div class="filter-bar hidden" id="filterBar">
+    <button class="filter-chip active" onclick="applyFilter('all', this)">すべて</button>
+    <button class="filter-chip" onclick="applyFilter('穀物類', this)">🌾 穀物類</button>
+    <button class="filter-chip" onclick="applyFilter('葉菜類', this)">🥬 葉菜類</button>
+    <button class="filter-chip" onclick="applyFilter('根菜類', this)">🥕 根菜類</button>
+    <button class="filter-chip" onclick="applyFilter('果菜類', this)">🍅 果菜類</button>
+    <button class="filter-chip" onclick="applyFilter('豆類', this)">🫘 豆類</button>
+    <button class="filter-chip" onclick="applyFilter('施設野菜', this)">🏠 施設野菜</button>
+    <button class="filter-chip" onclick="applyFilter('露地野菜', this)">🌿 露地野菜</button>
+    <button class="filter-chip" onclick="applyFilter('施設果樹', this)">🍓 施設果樹</button>
+    <button class="filter-chip" onclick="applyFilter('露地果樹', this)">🍊 露地果樹</button>
+    <button class="filter-chip" onclick="applyFilter('施設花き', this)">🌹 施設花き</button>
+  </div>
+</header>
+
+<div class="content-wrap">
+  <!-- CARD VIEW -->
+  <div id="view-cards" class="view active">
+    <div class="main-content">
+      <div class="crops-grid" id="cropsGrid"></div>
+    </div>
+  </div>
+
+  <!-- MONTH VIEW -->
+  <div id="view-month" class="view">
+    <div class="main-content">
+      <div class="month-selector" id="monthSelector"></div>
+      <div id="monthWorkList"></div>
+    </div>
+  </div>
+
+  <!-- TIMELINE VIEW -->
+  <div id="view-timeline" class="view">
+    <div class="main-content" style="padding-bottom:0">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e55d3a"></div>種まき</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#9b59b6"></div>育苗</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7ab648"></div>植え付け</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e8a020"></div>収穫</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#c0392b"></div>土づくり</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#5ba4a4"></div>草刈り</div>
+      </div>
+    </div>
+    <div class="tl-scroll">
+      <table class="tl-table" id="tlTable"></table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-sheet" id="modalSheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header" id="modalHeader"></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const WORKS = {
+  sow:     { label: '種まき',   color: '#e55d3a', icon: '🌱' },
+  育苗:    { label: '育苗',     color: '#9b59b6', icon: '🪴' },
+  plant:   { label: '植え付け', color: '#7ab648', icon: '🌿' },
+  harvest: { label: '収穫',     color: '#e8a020', icon: '🧺' },
+  soil:    { label: '土づくり', color: '#c0392b', icon: '🪱' },
+  mow:     { label: '草刈り',   color: '#5ba4a4', icon: '✂️' },
+};
+
+function makeSchedule(segments) {
+  const arr = Array(36).fill(null);
+  segments.forEach(([from, to, type]) => { for (let i=from; i<=to; i++) arr[i]=type; });
+  return arr;
+}
+function mpi(m, p) { return (m-1)*3+p; }
+
+const CROPS = [
+  // ===== 穀物類 =====
+  {
+    id:'rice', name:'水稲', emoji:'🌾', category:'穀物類',
+    price:'¥14,000〜18,000/60kg', priceNote:'コシヒカリ等・概算',
+    yield:'450〜500kg/株換算', yieldNote:'',
+    yield10a:'450〜500kg/10a', yield10aNote:'愛知県平年収量（農水省R6）',
+    desc:'愛知県の基幹作物。温暖な気候を活かし、早生〜中生品種が主流。4月育苗開始・5月田植え・9月収穫が標準的なサイクル。',
+    schedule:{
+      sow:     makeSchedule([[mpi(4,0),mpi(4,1),'sow']]),
+      育苗:    makeSchedule([[mpi(4,0),mpi(5,0),'育苗']]),
+      plant:   makeSchedule([[mpi(5,0),mpi(5,2),'plant']]),
+      harvest: makeSchedule([[mpi(9,0),mpi(9,2),'harvest']]),
+      soil:    makeSchedule([[mpi(10,1),mpi(11,0),'soil'],[mpi(3,0),mpi(3,1),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(8,0),'mow']]),
+    }
+  },
+  {
+    id:'wheat', name:'麦（小麦）', emoji:'🌾', category:'穀物類',
+    price:'¥6,000〜7,000/60kg', priceNote:'農家手取り概算',
+    yield:'300〜400kg/株換算', yieldNote:'',
+    yield10a:'320〜400kg/10a', yield10aNote:'愛知県平均（農水省統計）',
+    desc:'水稲との二毛作が主流。愛知では秋まき・初夏収穫のサイクル。品種は「ふくさやか」「あやひかり」など。',
+    schedule:{
+      sow:     makeSchedule([[mpi(10,2),mpi(11,1),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(6,0),mpi(6,2),'harvest']]),
+      soil:    makeSchedule([[mpi(9,2),mpi(10,1),'soil']]),
+      mow:     makeSchedule([[mpi(4,0),mpi(4,1),'mow']]),
+    }
+  },
+  {
+    id:'soybean', name:'大豆', emoji:'🫘', category:'穀物類',
+    price:'¥¥250〜350/kg', priceNote:'乾燥大豆・概算',
+    yield:'200〜250kg/株換算', yieldNote:'',
+    yield10a:'200〜260kg/10a', yield10aNote:'農水省統計（東海地方平均）',
+    desc:'麦の後作として6月播種が一般的。愛知では渥美・知多半島での生産が多い。連作障害に注意。',
+    schedule:{
+      sow:     makeSchedule([[mpi(6,0),mpi(6,2),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(10,2),mpi(11,1),'harvest']]),
+      soil:    makeSchedule([[mpi(5,1),mpi(5,2),'soil']]),
+      mow:     makeSchedule([[mpi(7,1),mpi(8,0),'mow']]),
+    }
+  },
+  // ===== 葉菜類 =====
+  {
+    id:'cabbage', name:'キャベツ', emoji:'🥬', category:'葉菜類',
+    price:'¥150〜250/個', priceNote:'秋冬に安定',
+    yield:'1〜1.5kg/株', yieldNote:'10〜15株/畝',
+    yield10a:'4,000〜5,000kg/10a', yield10aNote:'農水省野菜生産出荷統計',
+    desc:'愛知県は全国有数のキャベツ産地（全国2位）。秋まきが中心で冬から春に出荷。',
+    schedule:{
+      sow:     makeSchedule([[mpi(7,2),mpi(8,1),'sow'],[mpi(2,1),mpi(2,2),'sow']]),
+      育苗:    makeSchedule([[mpi(8,0),mpi(8,2),'育苗']]),
+      plant:   makeSchedule([[mpi(9,0),mpi(9,2),'plant'],[mpi(3,0),mpi(3,1),'plant']]),
+      harvest: makeSchedule([[mpi(11,0),mpi(1,2),'harvest'],[mpi(5,0),mpi(6,0),'harvest']]),
+      soil:    makeSchedule([[mpi(8,0),mpi(8,1),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,1),'mow'],[mpi(9,0),mpi(9,1),'mow']]),
+    }
+  },
+  {
+    id:'spinach', name:'ホウレンソウ', emoji:'🥬', category:'葉菜類',
+    price:'¥200〜350/袋', priceNote:'夏場に高騰',
+    yield:'200〜400g/㎡', yieldNote:'年3〜4作可能',
+    yield10a:'1,500〜2,500kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'冷涼な気候を好む。愛知では秋〜冬まきが主流で甘みが増す。',
+    schedule:{
+      sow:     makeSchedule([[mpi(9,0),mpi(11,2),'sow'],[mpi(3,0),mpi(4,0),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(11,0),mpi(2,2),'harvest'],[mpi(5,0),mpi(5,2),'harvest']]),
+      soil:    makeSchedule([[mpi(8,2),mpi(9,0),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,1),'mow']]),
+    }
+  },
+  {
+    id:'lettuce', name:'レタス', emoji:'🥗', category:'葉菜類',
+    price:'¥100〜200/個', priceNote:'春秋に安定',
+    yield:'400〜600g/株', yieldNote:'15〜20株/畝',
+    yield10a:'3,000〜4,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'春と秋の2回栽培が基本。高温多湿に弱いため夏の管理が重要。',
+    schedule:{
+      sow:     makeSchedule([[mpi(2,0),mpi(3,0),'sow'],[mpi(8,0),mpi(9,0),'sow']]),
+      育苗:    makeSchedule([[mpi(2,1),mpi(3,1),'育苗'],[mpi(8,1),mpi(9,1),'育苗']]),
+      plant:   makeSchedule([[mpi(3,2),mpi(4,0),'plant'],[mpi(9,2),mpi(10,0),'plant']]),
+      harvest: makeSchedule([[mpi(5,0),mpi(6,0),'harvest'],[mpi(11,0),mpi(12,0),'harvest']]),
+      soil:    makeSchedule([[mpi(2,0),mpi(2,1),'soil'],[mpi(8,0),mpi(8,1),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(7,1),'mow']]),
+    }
+  },
+  {
+    id:'komatsuna', name:'コマツナ', emoji:'🥬', category:'葉菜類',
+    price:'¥150〜250/袋', priceNote:'年間安定',
+    yield:'300〜500g/㎡', yieldNote:'年4〜5作可',
+    yield10a:'2,500〜3,500kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'耐寒性が高く年間を通じて栽培可能。愛知では周年出荷が盛ん。',
+    schedule:{
+      sow:     makeSchedule([[mpi(3,0),mpi(10,2),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(4,1),mpi(12,0),'harvest']]),
+      soil:    makeSchedule([[mpi(2,2),mpi(3,0),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,2),'mow'],[mpi(9,0),mpi(9,1),'mow']]),
+    }
+  },
+  {
+    id:'hakusai', name:'ハクサイ', emoji:'🥬', category:'葉菜類',
+    price:'¥200〜400/個', priceNote:'冬に需要増',
+    yield:'2〜3kg/株', yieldNote:'8〜12株/畝',
+    yield10a:'5,000〜7,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'秋まきが主体。愛知県内でも知多・渥美半島での栽培が盛ん。',
+    schedule:{
+      sow:     makeSchedule([[mpi(8,1),mpi(9,0),'sow']]),
+      育苗:    makeSchedule([[mpi(8,2),mpi(9,1),'育苗']]),
+      plant:   makeSchedule([[mpi(9,0),mpi(9,2),'plant']]),
+      harvest: makeSchedule([[mpi(11,0),mpi(1,2),'harvest']]),
+      soil:    makeSchedule([[mpi(8,0),mpi(8,1),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,1),'mow']]),
+    }
+  },
+  // ===== 根菜類 =====
+  {
+    id:'daikon', name:'ダイコン', emoji:'🫚', category:'根菜類',
+    price:'¥100〜200/本', priceNote:'冬に最安値',
+    yield:'1〜1.5kg/本', yieldNote:'20〜25本/畝',
+    yield10a:'3,500〜5,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'愛知は「守口大根」の産地としても有名。秋まきが主力。',
+    schedule:{
+      sow:     makeSchedule([[mpi(8,2),mpi(9,1),'sow'],[mpi(3,0),mpi(3,1),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(11,0),mpi(1,2),'harvest'],[mpi(5,0),mpi(5,2),'harvest']]),
+      soil:    makeSchedule([[mpi(8,0),mpi(8,1),'soil'],[mpi(2,0),mpi(2,1),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,1),'mow']]),
+    }
+  },
+  {
+    id:'carrot', name:'ニンジン', emoji:'🥕', category:'根菜類',
+    price:'¥150〜300/本', priceNote:'年間安定',
+    yield:'150〜250g/本', yieldNote:'50〜60本/畝',
+    yield10a:'3,000〜4,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'春と秋の2作。発芽に水分が必要。愛知では秋まきが確実。',
+    schedule:{
+      sow:     makeSchedule([[mpi(3,0),mpi(4,0),'sow'],[mpi(7,2),mpi(8,1),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(6,0),mpi(7,0),'harvest'],[mpi(11,0),mpi(12,1),'harvest']]),
+      soil:    makeSchedule([[mpi(2,1),mpi(2,2),'soil'],[mpi(7,0),mpi(7,1),'soil']]),
+      mow:     makeSchedule([[mpi(5,0),mpi(5,1),'mow'],[mpi(9,0),mpi(9,1),'mow']]),
+    }
+  },
+  {
+    id:'potato', name:'ジャガイモ', emoji:'🥔', category:'根菜類',
+    price:'¥200〜400/kg', priceNote:'秋に安値',
+    yield:'500〜800g/株', yieldNote:'15〜20株/畝',
+    yield10a:'2,500〜3,500kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'春と秋の2作。愛知の春植えは3月植え付けが基本。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(2,2),mpi(3,1),'plant'],[mpi(8,2),mpi(9,1),'plant']]),
+      harvest: makeSchedule([[mpi(6,0),mpi(7,0),'harvest'],[mpi(11,0),mpi(11,2),'harvest']]),
+      soil:    makeSchedule([[mpi(2,0),mpi(2,1),'soil'],[mpi(8,0),mpi(8,1),'soil']]),
+      mow:     makeSchedule([[mpi(5,0),mpi(5,1),'mow'],[mpi(10,0),mpi(10,1),'mow']]),
+    }
+  },
+  {
+    id:'onion', name:'タマネギ', emoji:'🧅', category:'根菜類',
+    price:'¥80〜150/個', priceNote:'春に最安',
+    yield:'200〜300g/個', yieldNote:'50〜60個/畝',
+    yield10a:'4,000〜6,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'愛知は主要産地の一つ。秋まき・晩春収穫のサイクルが基本。',
+    schedule:{
+      sow:     makeSchedule([[mpi(9,1),mpi(10,0),'sow']]),
+      育苗:    makeSchedule([[mpi(9,2),mpi(11,0),'育苗']]),
+      plant:   makeSchedule([[mpi(11,0),mpi(11,2),'plant']]),
+      harvest: makeSchedule([[mpi(5,0),mpi(6,0),'harvest']]),
+      soil:    makeSchedule([[mpi(10,1),mpi(10,2),'soil']]),
+      mow:     makeSchedule([[mpi(3,0),mpi(3,1),'mow']]),
+    }
+  },
+  // ===== 果菜類 =====
+  {
+    id:'tomato', name:'トマト', emoji:'🍅', category:'果菜類',
+    price:'¥300〜600/個', priceNote:'夏に増産',
+    yield:'4〜6kg/株', yieldNote:'5〜8株/畝',
+    yield10a:'5,000〜8,000kg/10a', yield10aNote:'農水省野菜統計（露地）',
+    desc:'愛知県は施設栽培が盛ん。露地栽培は4〜5月植え付けが基本。',
+    schedule:{
+      sow:     makeSchedule([[mpi(2,0),mpi(2,1),'sow']]),
+      育苗:    makeSchedule([[mpi(2,1),mpi(4,1),'育苗']]),
+      plant:   makeSchedule([[mpi(4,1),mpi(5,0),'plant']]),
+      harvest: makeSchedule([[mpi(7,0),mpi(9,2),'harvest']]),
+      soil:    makeSchedule([[mpi(3,1),mpi(3,2),'soil']]),
+      mow:     makeSchedule([[mpi(8,0),mpi(8,1),'mow']]),
+    }
+  },
+  {
+    id:'cucumber', name:'キュウリ', emoji:'🥒', category:'果菜類',
+    price:'¥80〜150/本', priceNote:'夏に安値',
+    yield:'20〜30本/株', yieldNote:'6〜8株/畝',
+    yield10a:'6,000〜8,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'生育が早く夏の代表野菜。愛知では4〜5月植え付け。連作を避ける。',
+    schedule:{
+      sow:     makeSchedule([[mpi(3,1),mpi(4,0),'sow'],[mpi(6,1),mpi(7,0),'sow']]),
+      育苗:    makeSchedule([[mpi(3,2),mpi(4,1),'育苗']]),
+      plant:   makeSchedule([[mpi(4,1),mpi(5,0),'plant'],[mpi(7,1),mpi(7,2),'plant']]),
+      harvest: makeSchedule([[mpi(6,0),mpi(8,2),'harvest'],[mpi(9,0),mpi(10,0),'harvest']]),
+      soil:    makeSchedule([[mpi(3,0),mpi(3,1),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(7,1),'mow']]),
+    }
+  },
+  {
+    id:'eggplant', name:'ナス', emoji:'🍆', category:'果菜類',
+    price:'¥100〜200/本', priceNote:'夏に安定',
+    yield:'30〜50本/株', yieldNote:'4〜6株/畝',
+    yield10a:'4,000〜6,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'高温多湿に強く愛知に向く。更新剪定で秋ナスも楽しめる。',
+    schedule:{
+      sow:     makeSchedule([[mpi(2,0),mpi(2,1),'sow']]),
+      育苗:    makeSchedule([[mpi(2,2),mpi(4,1),'育苗']]),
+      plant:   makeSchedule([[mpi(4,2),mpi(5,0),'plant']]),
+      harvest: makeSchedule([[mpi(6,2),mpi(10,1),'harvest']]),
+      soil:    makeSchedule([[mpi(3,1),mpi(3,2),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(7,1),'mow'],[mpi(9,0),mpi(9,1),'mow']]),
+    }
+  },
+  {
+    id:'pepper', name:'ピーマン', emoji:'🫑', category:'果菜類',
+    price:'¥150〜300/袋', priceNote:'夏が旬',
+    yield:'30〜50個/株', yieldNote:'5〜8株/畝',
+    yield10a:'3,000〜5,000kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'ナスと同じ管理で育てやすい。愛知では5月の植え付けが定番。',
+    schedule:{
+      sow:     makeSchedule([[mpi(2,1),mpi(3,0),'sow']]),
+      育苗:    makeSchedule([[mpi(3,0),mpi(4,2),'育苗']]),
+      plant:   makeSchedule([[mpi(5,0),mpi(5,1),'plant']]),
+      harvest: makeSchedule([[mpi(7,0),mpi(10,1),'harvest']]),
+      soil:    makeSchedule([[mpi(3,2),mpi(4,0),'soil']]),
+      mow:     makeSchedule([[mpi(8,0),mpi(8,1),'mow']]),
+    }
+  },
+  // ===== 豆類 =====
+  {
+    id:'edamame', name:'エダマメ', emoji:'🫘', category:'豆類',
+    price:'¥300〜500/袋', priceNote:'夏に需要急増',
+    yield:'300〜500g/株', yieldNote:'15〜20株/畝',
+    yield10a:'700〜1,000kg/10a', yield10aNote:'農水省統計（さや付）',
+    desc:'夏の風物詩。愛知では4〜5月まきが主流。梅雨明け後に収穫最盛。',
+    schedule:{
+      sow:     makeSchedule([[mpi(4,1),mpi(6,1),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(7,0),mpi(8,2),'harvest']]),
+      soil:    makeSchedule([[mpi(3,2),mpi(4,0),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,2),'mow'],[mpi(8,2),mpi(9,0),'mow']]),
+    }
+  },
+  {
+    id:'soramame', name:'ソラマメ', emoji:'🫘', category:'豆類',
+    price:'¥400〜700/袋', priceNote:'春に高値',
+    yield:'200〜400g/株', yieldNote:'8〜12株/畝',
+    yield10a:'700〜1,200kg/10a', yield10aNote:'農水省統計（さや付）',
+    desc:'秋まき春収穫。愛知では11月まきが定番。霜に注意。',
+    schedule:{
+      sow:     makeSchedule([[mpi(10,2),mpi(11,1),'sow']]),
+      育苗:    makeSchedule([[mpi(11,0),mpi(11,2),'育苗']]),
+      plant:   makeSchedule([[mpi(11,2),mpi(12,0),'plant']]),
+      harvest: makeSchedule([[mpi(4,2),mpi(5,2),'harvest']]),
+      soil:    makeSchedule([[mpi(10,0),mpi(10,1),'soil']]),
+      mow:     makeSchedule([[mpi(3,0),mpi(3,1),'mow']]),
+    }
+  },
+  {
+    id:'ingen', name:'インゲン', emoji:'🫘', category:'豆類',
+    price:'¥200〜400/袋', priceNote:'夏秋に出回る',
+    yield:'400〜600g/株', yieldNote:'10〜15株/畝',
+    yield10a:'1,000〜1,500kg/10a', yield10aNote:'農水省統計',
+    desc:'春と秋の2作が可能。つるなし品種は管理が楽。愛知では4月まきが基本。',
+    schedule:{
+      sow:     makeSchedule([[mpi(4,0),mpi(5,0),'sow'],[mpi(8,0),mpi(8,1),'sow']]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([]),
+      harvest: makeSchedule([[mpi(6,0),mpi(7,2),'harvest'],[mpi(10,0),mpi(11,0),'harvest']]),
+      soil:    makeSchedule([[mpi(3,1),mpi(3,2),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(7,1),'mow']]),
+    }
+  },
+  // ===== 施設野菜 =====
+  {
+    id:'ichigo', name:'イチゴ', emoji:'🍓', category:'施設野菜',
+    price:'¥3,000〜6,000/kg', priceNote:'12〜3月に高値',
+    yield:'500〜800g/株', yieldNote:'施設促成栽培',
+    yield10a:'5,000〜8,000kg/10a', yield10aNote:'愛知農総試（ゆめのか・章姫等）',
+    desc:'愛知県は施設促成栽培が盛ん。8月末育苗定植・10月〜翌6月収穫のロングラン出荷。',
+    schedule:{
+      sow:     makeSchedule([[mpi(6,1),mpi(7,0),'sow']]),
+      育苗:    makeSchedule([[mpi(7,0),mpi(9,0),'育苗']]),
+      plant:   makeSchedule([[mpi(9,0),mpi(9,1),'plant']]),
+      harvest: makeSchedule([[mpi(11,0),mpi(5,2),'harvest']]),
+      soil:    makeSchedule([[mpi(8,0),mpi(8,2),'soil']]),
+      mow:     makeSchedule([]),
+    }
+  },
+  {
+    id:'nira', name:'ニラ', emoji:'🌿', category:'施設野菜',
+    price:'¥200〜400/束', priceNote:'年間安定',
+    yield:'100〜200g/株', yieldNote:'株養成後年4〜6回刈り',
+    yield10a:'3,000〜4,000kg/10a', yield10aNote:'農水省施肥基準（目標収量）',
+    desc:'1年目は株養成。2年目以降は刈り取りを繰り返す多年生。愛知では施設周年栽培が多い。',
+    schedule:{
+      sow:     makeSchedule([[mpi(3,0),mpi(4,0),'sow']]),
+      育苗:    makeSchedule([[mpi(3,1),mpi(5,0),'育苗']]),
+      plant:   makeSchedule([[mpi(5,0),mpi(5,2),'plant']]),
+      harvest: makeSchedule([[mpi(3,0),mpi(10,2),'harvest']]),
+      soil:    makeSchedule([[mpi(2,0),mpi(2,2),'soil']]),
+      mow:     makeSchedule([]),
+    }
+  },
+  {
+    id:'broccoli', name:'ブロッコリー', emoji:'🥦', category:'施設野菜',
+    price:'¥150〜300/個', priceNote:'冬春に安定',
+    yield:'400〜600g/株', yieldNote:'15〜20株/畝',
+    yield10a:'1,200〜1,800kg/10a', yield10aNote:'農水省野菜統計',
+    desc:'愛知では春作・秋冬作の2シーズン。秋冬作の方が品質が安定。',
+    schedule:{
+      sow:     makeSchedule([[mpi(2,0),mpi(2,2),'sow'],[mpi(7,1),mpi(8,0),'sow']]),
+      育苗:    makeSchedule([[mpi(2,1),mpi(3,1),'育苗'],[mpi(7,2),mpi(8,2),'育苗']]),
+      plant:   makeSchedule([[mpi(3,1),mpi(4,0),'plant'],[mpi(8,2),mpi(9,1),'plant']]),
+      harvest: makeSchedule([[mpi(5,0),mpi(6,0),'harvest'],[mpi(11,0),mpi(1,2),'harvest']]),
+      soil:    makeSchedule([[mpi(2,0),mpi(2,1),'soil'],[mpi(7,1),mpi(7,2),'soil']]),
+      mow:     makeSchedule([[mpi(6,0),mpi(6,1),'mow']]),
+    }
+  },
+  {
+    id:'minitomato', name:'ミニトマト', emoji:'🍅', category:'施設野菜',
+    price:'¥600〜1,200/袋', priceNote:'周年出荷・夏高値',
+    yield:'5〜8kg/株', yieldNote:'施設栽培',
+    yield10a:'10,000〜15,000kg/10a', yield10aNote:'施設長期栽培想定（農水省参考値）',
+    desc:'施設栽培で周年出荷が可能。愛知の温暖気候を活かし長期多段収穫が主流。',
+    schedule:{
+      sow:     makeSchedule([[mpi(1,1),mpi(2,0),'sow'],[mpi(7,0),mpi(7,1),'sow']]),
+      育苗:    makeSchedule([[mpi(1,2),mpi(3,0),'育苗'],[mpi(7,1),mpi(8,0),'育苗']]),
+      plant:   makeSchedule([[mpi(3,0),mpi(3,2),'plant'],[mpi(8,0),mpi(8,1),'plant']]),
+      harvest: makeSchedule([[mpi(5,0),mpi(11,2),'harvest']]),
+      soil:    makeSchedule([[mpi(2,0),mpi(2,1),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(7,2),'mow']]),
+    }
+  },
+  {
+    id:'ooba', name:'大葉（青シソ）', emoji:'🌿', category:'施設野菜',
+    price:'¥300〜600/袋', priceNote:'夏に需要増・周年安定',
+    yield:'50〜80枚/株', yieldNote:'施設周年栽培',
+    yield10a:'20,000〜30,000枚/10a', yield10aNote:'JAひまわり等（愛知全国1位産地）',
+    desc:'愛知県は大葉の生産全国1位（シェア70%超）。豊橋・田原が主産地。施設ハウスで周年出荷。',
+    schedule:{
+      sow:     makeSchedule([[mpi(3,0),mpi(4,0),'sow'],[mpi(8,0),mpi(9,0),'sow']]),
+      育苗:    makeSchedule([[mpi(3,1),mpi(4,2),'育苗'],[mpi(8,1),mpi(9,2),'育苗']]),
+      plant:   makeSchedule([[mpi(4,2),mpi(5,1),'plant'],[mpi(9,2),mpi(10,1),'plant']]),
+      harvest: makeSchedule([[mpi(1,0),mpi(12,2),'harvest']]),
+      soil:    makeSchedule([[mpi(3,0),mpi(3,1),'soil']]),
+      mow:     makeSchedule([]),
+    }
+  },
+  // ===== 露地野菜 =====
+  {
+    id:'okra', name:'オクラ', emoji:'🫛', category:'露地野菜',
+    price:'¥200〜400/袋', priceNote:'夏の定番',
+    yield:'30〜50本/株', yieldNote:'10〜15株/畝',
+    yield10a:'1,000〜1,500kg/10a', yield10aNote:'農水省野菜統計参考値',
+    desc:'高温を好み愛知の夏に最適。5月播種・7〜9月収穫。草丈が高くなるので支柱が必要。',
+    schedule:{
+      sow:     makeSchedule([[mpi(4,2),mpi(5,1),'sow']]),
+      育苗:    makeSchedule([[mpi(5,0),mpi(5,2),'育苗']]),
+      plant:   makeSchedule([[mpi(5,1),mpi(6,0),'plant']]),
+      harvest: makeSchedule([[mpi(7,0),mpi(9,2),'harvest']]),
+      soil:    makeSchedule([[mpi(4,0),mpi(4,1),'soil']]),
+      mow:     makeSchedule([[mpi(8,0),mpi(8,1),'mow']]),
+    }
+  },
+  // ===== 施設果樹 =====
+  {
+    id:'ichijiku', name:'イチジク（施設）', emoji:'🫐', category:'施設果樹',
+    price:'¥400〜800/個', priceNote:'8〜11月に出回る',
+    yield:'3〜5kg/株', yieldNote:'施設加温栽培',
+    yield10a:'2,000〜3,000kg/10a', yield10aNote:'愛知県（知多半島が主産地）',
+    desc:'愛知県は全国有数のイチジク産地。知多半島が中心。施設栽培は早出し出荷が可能。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(3,0),mpi(3,2),'plant']]),
+      harvest: makeSchedule([[mpi(7,0),mpi(10,2),'harvest']]),
+      soil:    makeSchedule([[mpi(12,0),mpi(1,2),'soil']]),
+      mow:     makeSchedule([[mpi(2,0),mpi(2,2),'mow'],[mpi(11,0),mpi(11,2),'mow']]),
+    }
+  },
+  // ===== 露地果樹 =====
+  {
+    id:'grape', name:'ブドウ（露地）', emoji:'🍇', category:'露地果樹',
+    price:'¥500〜2,000/房', priceNote:'品種により大幅に異なる',
+    yield:'5〜8kg/株', yieldNote:'デラウェア等',
+    yield10a:'1,500〜2,500kg/10a', yield10aNote:'農水省果樹統計参考値',
+    desc:'愛知では岡崎・豊田周辺が産地。1〜2月剪定・5月ジベレリン処理・8〜9月収穫。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(2,0),mpi(3,0),'plant']]),
+      harvest: makeSchedule([[mpi(7,2),mpi(9,2),'harvest']]),
+      soil:    makeSchedule([[mpi(12,0),mpi(1,2),'soil']]),
+      mow:     makeSchedule([[mpi(1,0),mpi(2,0),'mow'],[mpi(6,0),mpi(6,2),'mow'],[mpi(11,0),mpi(11,2),'mow']]),
+    }
+  },
+  {
+    id:'lemon', name:'レモン（露地）', emoji:'🍋', category:'露地果樹',
+    price:'¥100〜300/個', priceNote:'国産は秋冬に高値',
+    yield:'10〜20kg/株', yieldNote:'成木',
+    yield10a:'1,500〜3,000kg/10a', yield10aNote:'農水省かんきつ統計参考値',
+    desc:'愛知の温暖な気候でレモン栽培が可能。10〜12月に収穫、グリーンレモンは9月から。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(3,0),mpi(4,0),'plant']]),
+      harvest: makeSchedule([[mpi(9,0),mpi(12,2),'harvest']]),
+      soil:    makeSchedule([[mpi(11,1),mpi(12,0),'soil']]),
+      mow:     makeSchedule([[mpi(2,0),mpi(2,2),'mow'],[mpi(6,0),mpi(6,2),'mow']]),
+    }
+  },
+  {
+    id:'mikan', name:'ミカン（露地）', emoji:'🍊', category:'露地果樹',
+    price:'¥200〜400/kg', priceNote:'11〜12月が最需要期',
+    yield:'20〜40kg/株', yieldNote:'成木・温州ミカン',
+    yield10a:'2,000〜3,500kg/10a', yield10aNote:'農水省かんきつ統計（愛知県）',
+    desc:'愛知は温州ミカンの主産地。伊勢湾・三河湾沿岸が栽培適地。ハウスミカンも有名。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(3,0),mpi(4,0),'plant']]),
+      harvest: makeSchedule([[mpi(10,0),mpi(12,2),'harvest']]),
+      soil:    makeSchedule([[mpi(12,0),mpi(1,2),'soil']]),
+      mow:     makeSchedule([[mpi(2,0),mpi(2,2),'mow'],[mpi(6,0),mpi(6,2),'mow'],[mpi(9,0),mpi(9,1),'mow']]),
+    }
+  },
+  // ===== 追加・露地野菜 =====
+  {
+    id:'negi', name:'白ネギ', emoji:'🧅', category:'露地野菜',
+    price:'¥150〜300/本', priceNote:'冬に需要増・鍋需要',
+    yield:'200〜300g/本', yieldNote:'200〜300本/畝',
+    yield10a:'3,000〜5,000kg/10a', yield10aNote:'農水省野菜統計参考値',
+    desc:'愛知では秋〜冬出荷が主力。3〜4月播種・育苗後、6〜7月に定植し10〜1月収穫。軟白処理が品質の決め手。',
+    schedule:{
+      sow:     makeSchedule([[mpi(3,0),mpi(4,0),'sow']]),
+      育苗:    makeSchedule([[mpi(3,1),mpi(6,0),'育苗']]),
+      plant:   makeSchedule([[mpi(6,0),mpi(7,0),'plant']]),
+      harvest: makeSchedule([[mpi(10,0),mpi(1,2),'harvest']]),
+      soil:    makeSchedule([[mpi(5,0),mpi(5,2),'soil']]),
+      mow:     makeSchedule([[mpi(8,0),mpi(8,1),'mow']]),
+    }
+  },
+  {
+    id:'satsumaimo', name:'サツマイモ', emoji:'🍠', category:'露地野菜',
+    price:'¥200〜500/本', priceNote:'秋に需要急増',
+    yield:'300〜600g/本', yieldNote:'300〜400本/畝',
+    yield10a:'2,000〜3,000kg/10a', yield10aNote:'農水省野菜統計（愛知県）',
+    desc:'愛知では渥美半島・知多半島が産地。5月植え付け・9〜11月収穫。貯蔵で甘みが増す。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([[mpi(3,1),mpi(4,2),'育苗']]),
+      plant:   makeSchedule([[mpi(5,0),mpi(5,2),'plant']]),
+      harvest: makeSchedule([[mpi(9,0),mpi(11,0),'harvest']]),
+      soil:    makeSchedule([[mpi(3,0),mpi(4,0),'soil']]),
+      mow:     makeSchedule([[mpi(7,0),mpi(8,0),'mow']]),
+    }
+  },
+  // ===== 追加・露地果樹 =====
+  {
+    id:'ume', name:'ウメ', emoji:'🌸', category:'露地果樹',
+    price:'¥300〜600/kg', priceNote:'梅酒・梅干し用・6月に出回る',
+    yield:'20〜40kg/株', yieldNote:'成木',
+    yield10a:'1,000〜2,000kg/10a', yield10aNote:'農水省果樹統計参考値',
+    desc:'愛知では1〜2月開花・5〜6月収穫。梅雨前に完熟梅を収穫するのが基本。剪定は収穫後に。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(12,0),mpi(1,2),'plant']]),
+      harvest: makeSchedule([[mpi(5,1),mpi(6,1),'harvest']]),
+      soil:    makeSchedule([[mpi(11,0),mpi(11,2),'soil']]),
+      mow:     makeSchedule([[mpi(2,0),mpi(2,2),'mow'],[mpi(7,0),mpi(7,2),'mow']]),
+    }
+  },
+  {
+    id:'momo', name:'モモ', emoji:'🍑', category:'露地果樹',
+    price:'¥200〜500/個', priceNote:'7〜8月に出回る',
+    yield:'30〜60kg/株', yieldNote:'成木',
+    yield10a:'1,500〜2,500kg/10a', yield10aNote:'農水省果樹統計参考値',
+    desc:'愛知では岡崎・豊田方面で栽培。2月剪定・3月開花・摘果を経て7〜8月収穫。裂果に注意。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([]),
+      plant:   makeSchedule([[mpi(12,0),mpi(1,2),'plant']]),
+      harvest: makeSchedule([[mpi(7,0),mpi(8,2),'harvest']]),
+      soil:    makeSchedule([[mpi(11,0),mpi(11,2),'soil']]),
+      mow:     makeSchedule([[mpi(2,0),mpi(2,2),'mow'],[mpi(6,0),mpi(6,2),'mow'],[mpi(10,0),mpi(10,2),'mow']]),
+    }
+  },
+  // ===== 施設花き =====
+  {
+    id:'rose', name:'バラ（施設）', emoji:'🌹', category:'施設花き',
+    price:'¥150〜500/本', priceNote:'バレンタイン・母の日に高値',
+    yield:'150〜250本/株', yieldNote:'施設周年栽培',
+    yield10a:'30〜50万本/10a', yield10aNote:'施設切り花バラ（農水省花き統計参考値）',
+    desc:'愛知県は切り花バラの大産地。愛知農総試がオリジナル品種「アイチ1号」を開発。施設内で周年出荷。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([[mpi(1,0),mpi(2,2),'育苗']]),
+      plant:   makeSchedule([[mpi(3,0),mpi(4,0),'plant']]),
+      harvest: makeSchedule([[mpi(1,0),mpi(12,2),'harvest']]),
+      soil:    makeSchedule([[mpi(12,0),mpi(1,0),'soil']]),
+      mow:     makeSchedule([[mpi(2,0),mpi(2,2),'mow'],[mpi(7,0),mpi(7,2),'mow']]),
+    }
+  },
+  {
+    id:'sprymum', name:'スプレーマム', emoji:'🌸', category:'施設花き',
+    price:'¥200〜500/本', priceNote:'需要は通年・彼岸・盆高値',
+    yield:'10〜15本/㎡', yieldNote:'年2〜3作',
+    yield10a:'10〜15万本/10a', yield10aNote:'JAひまわり（豊川市）参考値',
+    desc:'愛知が全国一の産地。豊川市（JAひまわり）が発祥地。菊の一種で栽培期間が短く省力的。',
+    schedule:{
+      sow:     makeSchedule([]),
+      育苗:    makeSchedule([[mpi(5,0),mpi(6,0),'育苗'],[mpi(8,0),mpi(9,0),'育苗']]),
+      plant:   makeSchedule([[mpi(6,0),mpi(6,2),'plant'],[mpi(9,0),mpi(9,2),'plant']]),
+      harvest: makeSchedule([[mpi(9,0),mpi(10,2),'harvest'],[mpi(12,0),mpi(1,2),'harvest']]),
+      soil:    makeSchedule([[mpi(4,0),mpi(5,0),'soil'],[mpi(7,2),mpi(8,1),'soil']]),
+      mow:     makeSchedule([]),
+    }
+  },
+];
+
+// ===== STATE =====
+let currentView = 'cards';
+let cardFilter = 'all';
+let timelineFilter = 'all';
+let monthFilter = 'all';
+let selectedMonth = new Date().getMonth() + 1;
+
+// ===== RENDER CARDS — 1列レイアウト =====
+function renderCards() {
+  const grid = document.getElementById('cropsGrid');
+  const crops = cardFilter === 'all' ? CROPS : CROPS.filter(c => c.category === cardFilter);
+  if (crops.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🌱</div><p>該当する品目がありません</p></div>';
+    return;
+  }
+  const catColors = { '葉菜類':'#2e7d32','根菜類':'#e65100','果菜類':'#c62828','豆類':'#283593','穀物類':'#6a1b9a','施設野菜':'#00695c','露地野菜':'#1b5e20','施設果樹':'#f57f17','露地果樹':'#880e4f','施設花き':'#c2185b' };
+
+  grid.innerHTML = crops.map((crop, i) => {
+    const miniBar = Array.from({length:12}, (_, mi) => {
+      const m = mi+1;
+      let color = '#e8e4dc';
+      for (const [type, slots] of Object.entries(crop.schedule)) {
+        if ([mpi(m,0),mpi(m,1),mpi(m,2)].some(idx => slots[idx] !== null)) { color = WORKS[type]?.color || '#ccc'; break; }
+      }
+      return `<div class="mini-month" style="background:${color}"></div>`;
+    }).join('');
+
+    const barColor = catColors[crop.category] || '#888';
+    return `
+    <div class="crop-card" style="animation-delay:${i*0.03}s" onclick="openModal('${crop.id}')">
+      <div class="card-left-bar" style="background:${barColor}"></div>
+      <div class="card-body">
+        <div class="card-emoji-wrap">${crop.emoji}</div>
+        <div class="card-main">
+          <div class="card-name">${crop.name}</div>
+          <span class="card-category cat-${crop.category}">${crop.category}</span>
+          <div class="card-stats">
+            <span class="card-stat">💴 ${crop.price}</span>
+            <span class="card-stat">📦 ${crop.yield}</span>
+            <span class="card-stat">🌾 10a：${crop.yield10a}</span>
+          </div>
+          <div class="card-mini-bar">${miniBar}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== MODAL =====
+function openModal(cropId) {
+  const crop = CROPS.find(c => c.id === cropId);
+  if (!crop) return;
+  document.getElementById('modalHeader').innerHTML = `
+    <div class="modal-emoji">${crop.emoji}</div>
+    <div>
+      <div class="modal-title">${crop.name}</div>
+      <span class="card-category cat-${crop.category}">${crop.category}</span>
+    </div>
+    <button class="modal-close" onclick="closeModal()">✕</button>`;
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const periods = ['上','中','下'];
+  const thHeaders = months.map(m => `<th colspan="3" class="month-header">${m}</th>`).join('');
+  const thPeriods = Array(12).fill(0).map(() => periods.map(p => `<th>${p}</th>`).join('')).join('');
+  const workRows = Object.entries(WORKS).map(([type, info]) => {
+    const slots = crop.schedule[type];
+    const cells = slots.map(v => !v ? '<td></td>' : `<td><div class="dot" style="background:${WORKS[v]?.color}"></div></td>`).join('');
+    return `<tr><td class="work-label">${info.icon} ${info.label}</td>${cells}</tr>`;
+  }).join('');
+  const legend = Object.entries(WORKS).map(([_, info]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${info.color}"></div>${info.icon} ${info.label}</div>`).join('');
+  document.getElementById('modalBody').innerHTML = `
+    <div class="info-grid">
+      <div class="info-box"><div class="info-box-label">💴 価格動向</div><div class="info-box-value">${crop.price}</div><div class="info-box-sub">${crop.priceNote}</div></div>
+      <div class="info-box"><div class="info-box-label">📦 単位収量</div><div class="info-box-value">${crop.yield}</div><div class="info-box-sub">${crop.yieldNote}</div></div>
+      <div class="info-box"><div class="info-box-label">🌾 10a収量</div><div class="info-box-value">${crop.yield10a}</div><div class="info-box-sub">${crop.yield10aNote}</div></div>
+    </div>
+    <div class="info-box" style="margin-bottom:16px"><div class="info-box-label">📝 特徴・ポイント</div><div style="font-size:13px;line-height:1.6;margin-top:4px;color:var(--text-mid)">${crop.desc}</div></div>
+    <div class="calendar-section">
+      <div class="section-title">📅 年間作業カレンダー（愛知県）</div>
+      <div class="legend">${legend}</div>
+      <div style="overflow-x:auto">
+        <table class="calendar-table" style="min-width:500px">
+          <thead><tr><th style="min-width:70px">作業</th>${thHeaders}</tr><tr><th></th>${thPeriods}</tr></thead>
+          <tbody>${workRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ===== MONTH VIEW =====
+function renderMonthSelector() {
+  const months = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+  const current = new Date().getMonth()+1;
+  document.getElementById('monthSelector').innerHTML = months.map(m => {
+    const mi = parseInt(m);
+    return `<button class="month-btn ${mi===selectedMonth?'active':''} ${mi===current&&mi!==selectedMonth?'current':''}" onclick="selectMonth(${mi})">${m}月</button>`;
+  }).join('');
+}
+function selectMonth(m) { selectedMonth=m; renderMonthSelector(); renderMonthWork(); }
+
+function renderMonthWork() {
+  const list = document.getElementById('monthWorkList');
+  const catColors = {'葉菜類':'#2e7d32','根菜類':'#e65100','果菜類':'#c62828','豆類':'#283593','穀物類':'#6a1b9a','施設野菜':'#00695c','露地野菜':'#1b5e20','施設果樹':'#f57f17','露地果樹':'#880e4f','施設花き':'#c2185b'};
+  const catBg = {'葉菜類':'#e8f5e9','根菜類':'#fff3e0','果菜類':'#fce4ec','豆類':'#e8eaf6','穀物類':'#f3e5f5','施設野菜':'#e0f7fa','露地野菜':'#e8f5e9','施設果樹':'#fff8e1','露地果樹':'#fce4ec','施設花き':'#fce4ec'};
+  const cropWork = {};
+  CROPS.forEach(crop => {
+    const periods = [null,null,null];
+    Object.entries(crop.schedule).forEach(([type, slots]) => {
+      [0,1,2].forEach(pi => { if (slots[mpi(selectedMonth,pi)] && !periods[pi]) periods[pi]=type; });
+    });
+    if (periods.some(p=>p!==null)) cropWork[crop.id]=periods;
+  });
+  // Apply category filter
+  const activeCrops = CROPS.filter(c => cropWork[c.id] && (monthFilter === 'all' || c.category === monthFilter));
+  if (activeCrops.length===0) { list.innerHTML='<div class="empty-state"><div class="empty-icon">😴</div><p>この時期の作業はありません</p></div>'; return; }
+  const catOrder = ['穀物類','葉菜類','根菜類','果菜類','豆類','施設野菜','露地野菜','施設果樹','露地果樹','施設花き'];
+  const periodLabels = ['上旬','中旬','下旬'];
+  let html = '';
+  catOrder.forEach(cat => {
+    const crops = activeCrops.filter(c=>c.category===cat);
+    if (!crops.length) return;
+    html += `<div class="season-header"><span style="color:${catColors[cat]}">${cat}</span><div class="season-line"></div></div>`;
+    crops.forEach(crop => {
+      const periods = cropWork[crop.id];
+      const dominantType = periods.find(p=>p!==null);
+      const dotColor = dominantType ? WORKS[dominantType].color : '#ccc';
+      const periodCells = periods.map((type,pi) => {
+        if (!type) return `<div class="period-cell"><span class="period-label">${periodLabels[pi]}</span><span class="period-empty">—</span></div>`;
+        const w=WORKS[type];
+        return `<div class="period-cell" style="background:${w.color}18"><span class="period-label" style="color:${w.color}">${periodLabels[pi]}</span><span class="period-work-tag" style="background:${w.color}">${w.icon} ${w.label}</span></div>`;
+      }).join('');
+      html += `<div class="work-item-card" onclick="openModal('${crop.id}')">
+        <div class="work-card-header">
+          <div class="work-dot-large" style="background:${dotColor}"></div>
+          <div class="work-crop-name">${crop.emoji} ${crop.name}</div>
+          <span class="work-category-badge cat-${cat}">${cat}</span>
+        </div>
+        <div class="work-periods-grid">${periodCells}</div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html;
+}
+
+// ===== TIMELINE VIEW =====
+function renderTimeline() {
+  const crops = timelineFilter==='all' ? CROPS : CROPS.filter(c=>c.category===timelineFilter);
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const periods = ['上','中','下'];
+  const catOrder = ['穀物類','葉菜類','根菜類','果菜類','豆類','施設野菜','露地野菜','施設果樹','露地果樹','施設花き'];
+  const catEmoji = {'穀物類':'🌾','葉菜類':'🥬','根菜類':'🥕','果菜類':'🍅','豆類':'🫘','施設野菜':'🏠','露地野菜':'🌿','施設果樹':'🍓','露地果樹':'🍊','施設花き':'🌹'};
+  const COL = 22, CROP_W = 88;
+
+  // colgroup
+  let html = '<colgroup><col style="width:'+CROP_W+'px">';
+  for (let i=0;i<36;i++) html += '<col style="width:'+COL+'px">';
+  html += '</colgroup>';
+
+  // thead row1: month labels
+  html += '<thead><tr>';
+  html += '<th class="tl-th tl-crop-col">品目</th>';
+  months.forEach(m => {
+    html += `<th class="tl-th" colspan="3" style="border-right:2px solid rgba(255,255,255,0.5)">${m}</th>`;
+  });
+  html += '</tr>';
+  // thead row2: period labels
+  html += '<tr>';
+  html += '<th class="tl-th tl-crop-col tl-period"></th>';
+  for (let mi=0;mi<12;mi++) {
+    periods.forEach((p,pi) => {
+      html += `<th class="tl-th tl-period${pi===2?' tl-period-last':''}">${p}</th>`;
+    });
+  }
+  html += '</tr></thead><tbody>';
+
+  // data rows
+  catOrder.forEach(cat => {
+    const cc = crops.filter(c=>c.category===cat);
+    if (!cc.length) return;
+    // category divider row
+    if (timelineFilter==='all') {
+      html += `<tr class="tl-cat"><td class="tl-td tl-crop-col">${catEmoji[cat]} ${cat}</td>`;
+      html += '<td class="tl-td" colspan="36"></td></tr>';
+    }
+    cc.forEach(crop => {
+      const merged = Array(36).fill(null);
+      Object.entries(crop.schedule).forEach(([type,slots]) => {
+        slots.forEach((v,i) => { if(v && !merged[i]) merged[i]=type; });
+      });
+      html += `<tr><td class="tl-td tl-crop-col">${crop.emoji} ${crop.name}</td>`;
+      merged.forEach((type,idx) => {
+        const cls = (idx%3)===2 ? ' tl-month-end' : '';
+        html += !type
+          ? `<td class="tl-td${cls}"></td>`
+          : `<td class="tl-td${cls}"><div class="tl-bar" style="background:${WORKS[type]?.color||'#ccc'}"></div></td>`;
+      });
+      html += '</tr>';
+    });
+  });
+  html += '</tbody>';
+  document.getElementById('tlTable').innerHTML = html;
+
+  // Fix row2 thead top after render
+  requestAnimationFrame(() => {
+    const tbl = document.getElementById('tlTable');
+    if (!tbl) return;
+    const h = tbl.querySelector('thead tr:nth-child(1)')?.offsetHeight || 26;
+    tbl.querySelectorAll('thead tr:nth-child(2) th').forEach(th => { th.style.top = h+'px'; });
+  });
+}
+
+// ===== UNIFIED FILTER =====
+function applyFilter(cat, btn) {
+  document.querySelectorAll('#filterBar .filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (currentView === 'cards') {
+    cardFilter = cat;
+    renderCards();
+  } else if (currentView === 'timeline') {
+    timelineFilter = cat;
+    renderTimeline();
+  } else if (currentView === 'month') {
+    monthFilter = cat;
+    renderMonthWork();
+  }
+}
+
+// ===== VIEW SWITCH =====
+function switchView(name) {
+  currentView = name;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{ b.classList.toggle('active',['cards','month','timeline'][i]===name); });
+  // Show filter bar for all views
+  document.getElementById('filterBar').classList.remove('hidden');
+  // Sync active chip to the current filter for this view
+  {
+    const activeVal = name === 'cards' ? cardFilter : name === 'timeline' ? timelineFilter : monthFilter;
+    document.querySelectorAll('#filterBar .filter-chip').forEach(b => {
+      const label = b.textContent.trim().replace(/^[^\s]+\s*/,'');  // strip emoji
+      // match by onclick attribute value
+      const match = b.getAttribute('onclick').match(/'([^']+)'/);
+      b.classList.toggle('active', match && match[1] === activeVal);
+    });
+  }
+  if (name === 'month') { renderMonthSelector(); renderMonthWork(); }
+  if (name === 'timeline') { renderTimeline(); }
+}
+
+
+
+
+// ===== INIT =====
+renderCards();
+document.getElementById('filterBar').classList.remove('hidden');
+// Handle shortcut URL params (?view=month or ?view=timeline)
+(function() {
+  const params = new URLSearchParams(location.search);
+  const v = params.get('view');
+  if (v === 'month' || v === 'timeline') switchView(v);
+})();
+if ('serviceWorker' in navigator) { window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
+</script>
+</body>
+</html>
